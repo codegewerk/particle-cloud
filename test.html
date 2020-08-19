@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      .background {
+        position: absolute;
+        display: block;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="background"></canvas>
+    <script src="./dist/particles.js"></script>
+    <script>
+      window.onload = function () {
+        console.log("test");
+        window.particles.Particles.init({
+          connectParticles: true,
+          selector: ".background",
+        });
+      };
+    </script>
+  </body>
+</html>

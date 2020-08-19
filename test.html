@@ -25,11 +25,12 @@
     <script src="./dist/particles.js"></script>
     <script>
       window.onload = function () {
-        console.log("test");
-        window.particles.Particles.init({
+        const instance = new window.particles.Particles();
+        instance.init({
           connectParticles: true,
           selector: ".background",
         });
+        instance.start();
       };
     </script>
   </body>

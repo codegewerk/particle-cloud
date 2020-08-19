@@ -1,3 +1,5 @@
+import Particle from "./Particle";
+
 /*!
  * A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
  *
@@ -8,11 +10,8 @@
  */
 
 /* exported Particles */
-export const Particles = (function (window, document) {
+const Particles = (function (window, document) {
   "use strict";
-
-  var Plugin,
-    Particle = {};
 
   function particleCompareFunc(p1, p2) {
     if (p1.x < p2.x) {
@@ -33,7 +32,7 @@ export const Particles = (function (window, document) {
    *
    * @constructor
    */
-  Plugin = (function () {
+  const Plugin = (function () {
     function Plugin() {
       var _ = this;
 
@@ -82,9 +81,12 @@ export const Particles = (function (window, document) {
     _._registerBreakpoints();
     _._checkResponsive();
     _._initializeStorage();
-    _._animate();
 
     return _;
+  };
+
+  Plugin.prototype.start = function () {
+    this._animate();
   };
 
   /**
@@ -175,7 +177,7 @@ export const Particles = (function (window, document) {
     _.storage = [];
 
     for (var i = _.options.maxParticles; i--; ) {
-      _.storage.push(new Particle(_.context, _.options));
+      _.storage.push(new Particle(_.options));
     }
   };
 
@@ -314,8 +316,12 @@ export const Particles = (function (window, document) {
   Plugin.prototype._animate = function () {
     var _ = this;
 
-    _._draw();
+    _.step();
     _._animation = window.requestAnimFrame(_._animate);
+  };
+
+  Plugin.prototype.step = function () {
+    this._draw();
   };
 
   /**
@@ -384,16 +390,20 @@ export const Particles = (function (window, document) {
       var particle = storage[i];
 
       if (showParticles) {
-        particle._draw();
+        particle._draw(_.context);
       }
 
       particle._updateCoordinates(parentWidth, parentHeight);
     }
 
     if (_.options.connectParticles) {
-      storage.sort(particleCompareFunc);
-      _._updateEdges();
+      _.connect();
     }
+  };
+
+  Plugin.prototype.connect = function () {
+    this.storage.sort(particleCompareFunc);
+    this._updateEdges();
   };
 
   /**
@@ -460,7 +470,6 @@ export const Particles = (function (window, document) {
     _.context.moveTo(p1.x, p1.y);
     _.context.lineTo(p2.x, p2.y);
     _.context.stroke();
-    _.context.fill();
     _.context.closePath();
   };
 
@@ -499,93 +508,6 @@ export const Particles = (function (window, document) {
   };
 
   /**
-   * Represents a single particle.
-   *
-   * @constructor
-   * @param {object} context
-   * @param {object} options
-   */
-  Particle = function (context, options) {
-    var _ = this,
-      random = Math.random,
-      speed = options.speed,
-      color =
-        options.color instanceof Array
-          ? options.color[Math.floor(Math.random() * options.color.length)]
-          : options.color;
-
-    _.context = context;
-    _.options = options;
-
-    var canvas = document.querySelector(options.selector);
-    _.x = canvas.offsetParent
-      ? random() * canvas.offsetParent.clientWidth
-      : random() * canvas.clientWidth;
-
-    if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
-      _.y = random() * window.innerHeight;
-    } else {
-      _.y = canvas.offsetParent
-        ? random() * canvas.offsetParent.clientHeight
-        : random() * canvas.clientHeight;
-    }
-
-    _.vx = random() * speed * 2 - speed;
-    _.vy = random() * speed * 2 - speed;
-    _.radius = random() * random() * options.sizeVariations;
-    _.color = color;
-
-    _._draw();
-  };
-
-  /**
-   * The particles draw function (renders the circle).
-   *
-   * @private
-   */
-  Particle.prototype._draw = function () {
-    var _ = this;
-
-    _.context.save();
-    _.context.translate(_.x, _.y);
-    _.context.moveTo(0, 0);
-    _.context.beginPath();
-    _.context.arc(0, 0, _.radius, 0, Math.PI * 2, false);
-    _.context.fillStyle = _.color;
-    _.context.fill();
-    _.context.restore();
-  };
-
-  /**
-   * This updates the particles coordinates.
-   *
-   * @private
-   * @param parentWidth
-   * @param parentHeight
-   */
-  Particle.prototype._updateCoordinates = function (parentWidth, parentHeight) {
-    var _ = this,
-      x = _.x + this.vx,
-      y = _.y + this.vy,
-      radius = _.radius;
-
-    if (x + radius > parentWidth) {
-      x = radius;
-    } else if (x - radius < 0) {
-      x = parentWidth - radius;
-    }
-
-    if (y + radius > parentHeight) {
-      y = radius;
-    } else if (y - radius < 0) {
-      y = parentHeight - radius;
-    }
-
-    _.x = x;
-    _.y = y;
-  };
-
-  /**
    * A polyfill for requestAnimFrame.
    *
    * @return {function}
@@ -608,7 +530,7 @@ export const Particles = (function (window, document) {
     };
   })();
 
-  return new Plugin();
+  return Plugin;
 })(window, document);
 
 //(function() {
@@ -622,3 +544,5 @@ export const Particles = (function (window, document) {
 //window.Particles = Particles;
 //}
 //})();
+
+export { Particle, Particles };

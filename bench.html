@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      .background {
+        position: absolute;
+        display: block;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="background"></canvas>
+    <script src="./dist/particles.js"></script>
+    <script>
+      const benchmarks = [];
+
+      function bench(name, iterator, iterations = 1000) {
+        const start = window.performance.now();
+        for (let i = 0; i < iterations; i++) {
+          iterator();
+        }
+        const end = window.performance.now();
+        const total = end - start;
+        const time_per_iter = total / iterations;
+
+        benchmarks.push({
+          name,
+          total: `${total}ms`,
+          time_per_iter: `${time_per_iter}ms`,
+          iterations,
+        });
+      }
+
+      const instance = new window.particles.Particles();
+      instance.init({
+        connectParticles: true,
+        selector: ".background",
+      });
+
+      bench("step", () => instance.step(), 100);
+
+      console.table(benchmarks);
+    </script>
+  </body>
+</html>

@@ -97,7 +97,7 @@ var particles =
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hex2rgb", function() { return hex2rgb; });
-const Particle = function (options) {
+const Particle = function (options, clientHeight, clientWidth) {
   var _ = this,
     random = Math.random,
     speed = options.speed,
@@ -108,18 +108,8 @@ const Particle = function (options) {
 
   _.rgb = hex2rgb(color);
 
-  var canvas = document.querySelector(options.selector);
-  _.x = canvas.offsetParent
-    ? random() * canvas.offsetParent.clientWidth
-    : random() * canvas.clientWidth;
-
-  if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
-    _.y = random() * window.innerHeight;
-  } else {
-    _.y = canvas.offsetParent
-      ? random() * canvas.offsetParent.clientHeight
-      : random() * canvas.clientHeight;
-  }
+  _.x = random() * clientWidth;
+  _.y = random() * clientHeight;
 
   _.vx = random() * speed * 2 - speed;
   _.vy = random() * speed * 2 - speed;
@@ -180,60 +170,6 @@ function hex2rgb(hex) {
 
 /***/ }),
 
-/***/ "./src/ParticleList.js":
-/*!*****************************!*\
-  !*** ./src/ParticleList.js ***!
-  \*****************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParticleList; });
-class ParticleList {
-  constructor() {
-    this.x = [];
-    this.y = [];
-    this.vx = [];
-    this.vy = [];
-    this.radius = [];
-  }
-
-  createParticle(options) {
-    const speed = options.speed;
-    const color =
-      options.color instanceof Array
-        ? options.color[Math.floor(Math.random() * options.color.length)]
-        : options.color;
-
-    const canvas = document.querySelector(options.selector);
-    const x = canvas.offsetParent
-      ? Math.random() * canvas.offsetParent.clientWidth
-      : Math.random() * canvas.clientWidth;
-    this.x.push(x);
-
-    if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
-      const y = Math.random() * window.innerHeight;
-      this.y.push(y);
-    } else {
-      const y = canvas.offsetParent
-        ? Math.random() * canvas.offsetParent.clientHeight
-        : Math.random() * canvas.clientHeight;
-      this.y.push(y);
-    }
-
-    const vx = Math.random() * speed * 2 - speed;
-    this.vx.push(vx);
-    const vy = Math.random() * speed * 2 - speed;
-    this.vy.push(vx);
-    const radius = Math.random() * Math.random() * options.sizeVariations;
-    this.radius.push(vx);
-  }
-}
-
-
-/***/ }),
-
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
@@ -249,13 +185,9 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hex2rgb", function() { return _Particle__WEBPACK_IMPORTED_MODULE_0__["hex2rgb"]; });
 
-/* harmony import */ var _ParticleList__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ParticleList */ "./src/ParticleList.js");
-
 
 
 const Particles = (function (window, document) {
-  "use strict";
-
   function particleCompareFunc(p1, p2) {
     if (p1.x < p2.x) {
       return -1;
@@ -270,11 +202,6 @@ const Particles = (function (window, document) {
     return 0;
   }
 
-  /**
-   * Represents the plugin.
-   *
-   * @constructor
-   */
   const Plugin = (function () {
     function Plugin() {
       var _ = this;
@@ -305,12 +232,6 @@ const Particles = (function (window, document) {
     return Plugin;
   })();
 
-  /**
-   * Public mehtod to initialize the plugin with user settings.
-   *
-   * @public
-   * @param {object} settings
-   */
   Plugin.prototype.init = function (settings) {
     var _ = this;
 
@@ -341,7 +262,6 @@ const Particles = (function (window, document) {
     var _ = this;
 
     _.storage = [];
-    //_.element.remove();
 
     window.removeEventListener("resize", _.listener, false);
     window.clearTimeout(_._animation);
@@ -415,12 +335,31 @@ const Particles = (function (window, document) {
    * @private
    */
   Plugin.prototype._initializeStorage = function () {
-    var _ = this;
-    _.storage = [];
+    this.storage = [];
 
-    for (var i = _.options.maxParticles; i--; ) {
-      _.storage.push(new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](_.options));
+    const [clientWidth, clientHeight] = this.getDimensions();
+    for (var i = this.options.maxParticles; i--; ) {
+      this.storage.push(new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](this.options, clientHeight, clientWidth));
     }
+  };
+
+  Plugin.prototype.getDimensions = function () {
+    const canvas = this.element;
+
+    let clientHeight;
+    if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
+      clientHeight = window.innerHeight;
+    } else {
+      clientHeight = canvas.offsetParent
+        ? canvas.offsetParent.clientHeight
+        : canvas.clientHeight;
+    }
+
+    const clientWidth = canvas.offsetParent
+      ? canvas.offsetParent.clientWidth
+      : canvas.clientWidth;
+
+    return [clientWidth, clientHeight];
   };
 
   /**
@@ -508,11 +447,6 @@ const Particles = (function (window, document) {
     }
   };
 
-  /**
-   * Rebuild the storage and update the canvas.
-   *
-   * @private
-   */
   Plugin.prototype._refresh = function () {
     var _ = this;
 
@@ -520,11 +454,6 @@ const Particles = (function (window, document) {
     _._draw();
   };
 
-  /**
-   * Kick off various things on window resize.
-   *
-   * @private
-   */
   Plugin.prototype._resize = function () {
     var _ = this;
 
@@ -563,7 +492,16 @@ const Particles = (function (window, document) {
   };
 
   Plugin.prototype.step = function () {
+    this.move();
     this._draw();
+  };
+
+  Plugin.prototype.move = function () {
+    const [clientWidth, clientHeight] = this.getDimensions();
+
+    for (const particle of this.storage) {
+      particle._updateCoordinates(clientWidth, clientHeight);
+    }
   };
 
   /**
@@ -610,36 +548,17 @@ const Particles = (function (window, document) {
    * @private
    */
   Plugin.prototype._draw = function () {
-    var _ = this,
-      element = _.element,
-      parentWidth = element.offsetParent
-        ? element.offsetParent.clientWidth
-        : element.clientWidth,
-      parentHeight = element.offsetParent
-        ? element.offsetParent.clientHeight
-        : element.clientHeight,
-      showParticles = _.options.showParticles,
-      storage = _.storage;
+    this.context.clearRect(0, 0, this.element.width, this.element.height);
+    this.context.beginPath();
 
-    if (element.offsetParent && element.offsetParent.nodeName === "BODY") {
-      parentHeight = window.innerHeight;
-    }
-
-    _.context.clearRect(0, 0, element.width, element.height);
-    _.context.beginPath();
-
-    for (var i = storage.length; i--; ) {
-      var particle = storage[i];
-
-      if (showParticles) {
-        particle._draw(_.context);
+    if (this.options.showParticles) {
+      for (const particle of this.storage) {
+        particle._draw(this.context);
       }
-
-      particle._updateCoordinates(parentWidth, parentHeight);
     }
 
-    if (_.options.connectParticles) {
-      _.connect();
+    if (this.options.connectParticles) {
+      this.connect();
     }
   };
 
@@ -648,51 +567,32 @@ const Particles = (function (window, document) {
     this._updateEdges();
   };
 
-  /**
-   * Updates the edges.
-   *
-   * @private
-   */
   Plugin.prototype._updateEdges = function () {
-    var _ = this,
-      minDistance = _.options.minDistance,
-      sqrt = Math.sqrt,
-      abs = Math.abs,
-      storage = _.storage,
-      storageLength = storage.length;
+    const minDistance = this.options.minDistance;
+    const storageLength = this.storage.length;
 
     for (let i = 0; i < storageLength; i++) {
-      const p1 = storage[i];
+      const p1 = this.storage[i];
 
       for (let j = i + 1; j < storageLength; j++) {
-        const p2 = storage[j];
+        const p2 = this.storage[j];
 
         const r = p1.x - p2.x;
-        if (abs(r) > minDistance) {
+        if (Math.abs(r) > minDistance) {
           break;
         }
 
         const dy = p1.y - p2.y;
-        const distance = sqrt(r * r + dy * dy);
+        const distance = Math.sqrt(r * r + dy * dy);
         if (distance <= minDistance) {
-          _._drawEdge(p1, p2, 1.2 - distance / minDistance);
+          this._drawEdge(p1, p2, 1.2 - distance / minDistance);
         }
       }
     }
   };
 
-  /**
-   * Draws an edge between two points.
-   *
-   * @private
-   * @param {Particle} p1
-   * @param {Particle} p2
-   * @param {number} opacity
-   */
   Plugin.prototype._drawEdge = function (p1, p2, opacity) {
-    var _ = this,
-      gradient = _.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-
+    const gradient = this.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
     gradient.addColorStop(
       0,
       `rgba(${p1.rgb.r},${p1.rgb.g},${p1.rgb.b},${opacity})`
@@ -702,21 +602,14 @@ const Particles = (function (window, document) {
       `rgba(${p2.rgb.r},${p2.rgb.g},${p2.rgb.b},${opacity})`
     );
 
-    _.context.beginPath();
-    _.context.moveTo(p1.x, p1.y);
-    _.context.lineTo(p2.x, p2.y);
-    _.context.strokeStyle = gradient;
-    _.context.stroke();
-    _.context.closePath();
+    this.context.beginPath();
+    this.context.moveTo(p1.x, p1.y);
+    this.context.lineTo(p2.x, p2.y);
+    this.context.strokeStyle = gradient;
+    this.context.stroke();
+    this.context.closePath();
   };
 
-  /**
-   * Merges the keys of two objects.
-   *
-   * @private
-   * @param {object} source
-   * @param {object} obj
-   */
   Plugin.prototype._extend = function (source, obj) {
     Object.keys(obj).forEach(function (key) {
       source[key] = obj[key];

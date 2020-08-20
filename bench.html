@@ -52,21 +52,51 @@
         }
       }
 
+      function setupInstance() {
+        const instance = new window.particles.Particles();
+        instance.init({
+          connectParticles: true,
+          selector: ".background",
+        });
+        return instance;
+      }
+
+      function teardownInstance(instance) {
+        instance.destroy();
+      }
+
       bench(
         "step",
         {
-          setup: () => {
-            const instance = new window.particles.Particles();
-            instance.init({
-              connectParticles: true,
-              selector: ".background",
-            });
-            return instance;
-          },
+          setup: setupInstance,
           iterate: (instance) => {
             instance.step();
           },
-          teardown: (instance) => instance.destroy(),
+          teardown: teardownInstance,
+        },
+        200
+      );
+
+      bench(
+        "move",
+        {
+          setup: setupInstance,
+          iterate: (instance) => {
+            instance.move();
+          },
+          teardown: teardownInstance,
+        },
+        1000
+      );
+
+      bench(
+        "draw",
+        {
+          setup: setupInstance,
+          iterate: (instance) => {
+            instance._draw();
+          },
+          teardown: teardownInstance,
         },
         200
       );

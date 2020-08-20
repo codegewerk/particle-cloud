@@ -1,4 +1,4 @@
-const Particle = function (options) {
+const Particle = function (options, clientHeight, clientWidth) {
   var _ = this,
     random = Math.random,
     speed = options.speed,
@@ -9,18 +9,8 @@ const Particle = function (options) {
 
   _.rgb = hex2rgb(color);
 
-  var canvas = document.querySelector(options.selector);
-  _.x = canvas.offsetParent
-    ? random() * canvas.offsetParent.clientWidth
-    : random() * canvas.clientWidth;
-
-  if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
-    _.y = random() * window.innerHeight;
-  } else {
-    _.y = canvas.offsetParent
-      ? random() * canvas.offsetParent.clientHeight
-      : random() * canvas.clientHeight;
-  }
+  _.x = random() * clientWidth;
+  _.y = random() * clientHeight;
 
   _.vx = random() * speed * 2 - speed;
   _.vy = random() * speed * 2 - speed;

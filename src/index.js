@@ -1,9 +1,6 @@
 import Particle, { hex2rgb } from "./Particle";
-import ParticleList from "./ParticleList";
 
 const Particles = (function (window, document) {
-  "use strict";
-
   function particleCompareFunc(p1, p2) {
     if (p1.x < p2.x) {
       return -1;
@@ -18,11 +15,6 @@ const Particles = (function (window, document) {
     return 0;
   }
 
-  /**
-   * Represents the plugin.
-   *
-   * @constructor
-   */
   const Plugin = (function () {
     function Plugin() {
       var _ = this;
@@ -53,12 +45,6 @@ const Particles = (function (window, document) {
     return Plugin;
   })();
 
-  /**
-   * Public mehtod to initialize the plugin with user settings.
-   *
-   * @public
-   * @param {object} settings
-   */
   Plugin.prototype.init = function (settings) {
     var _ = this;
 
@@ -89,7 +75,6 @@ const Particles = (function (window, document) {
     var _ = this;
 
     _.storage = [];
-    //_.element.remove();
 
     window.removeEventListener("resize", _.listener, false);
     window.clearTimeout(_._animation);
@@ -163,12 +148,31 @@ const Particles = (function (window, document) {
    * @private
    */
   Plugin.prototype._initializeStorage = function () {
-    var _ = this;
-    _.storage = [];
+    this.storage = [];
 
-    for (var i = _.options.maxParticles; i--; ) {
-      _.storage.push(new Particle(_.options));
+    const [clientWidth, clientHeight] = this.getDimensions();
+    for (var i = this.options.maxParticles; i--; ) {
+      this.storage.push(new Particle(this.options, clientHeight, clientWidth));
     }
+  };
+
+  Plugin.prototype.getDimensions = function () {
+    const canvas = this.element;
+
+    let clientHeight;
+    if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
+      clientHeight = window.innerHeight;
+    } else {
+      clientHeight = canvas.offsetParent
+        ? canvas.offsetParent.clientHeight
+        : canvas.clientHeight;
+    }
+
+    const clientWidth = canvas.offsetParent
+      ? canvas.offsetParent.clientWidth
+      : canvas.clientWidth;
+
+    return [clientWidth, clientHeight];
   };
 
   /**
@@ -256,11 +260,6 @@ const Particles = (function (window, document) {
     }
   };
 
-  /**
-   * Rebuild the storage and update the canvas.
-   *
-   * @private
-   */
   Plugin.prototype._refresh = function () {
     var _ = this;
 
@@ -268,11 +267,6 @@ const Particles = (function (window, document) {
     _._draw();
   };
 
-  /**
-   * Kick off various things on window resize.
-   *
-   * @private
-   */
   Plugin.prototype._resize = function () {
     var _ = this;
 
@@ -311,7 +305,16 @@ const Particles = (function (window, document) {
   };
 
   Plugin.prototype.step = function () {
+    this.move();
     this._draw();
+  };
+
+  Plugin.prototype.move = function () {
+    const [clientWidth, clientHeight] = this.getDimensions();
+
+    for (const particle of this.storage) {
+      particle._updateCoordinates(clientWidth, clientHeight);
+    }
   };
 
   /**
@@ -358,36 +361,17 @@ const Particles = (function (window, document) {
    * @private
    */
   Plugin.prototype._draw = function () {
-    var _ = this,
-      element = _.element,
-      parentWidth = element.offsetParent
-        ? element.offsetParent.clientWidth
-        : element.clientWidth,
-      parentHeight = element.offsetParent
-        ? element.offsetParent.clientHeight
-        : element.clientHeight,
-      showParticles = _.options.showParticles,
-      storage = _.storage;
+    this.context.clearRect(0, 0, this.element.width, this.element.height);
+    this.context.beginPath();
 
-    if (element.offsetParent && element.offsetParent.nodeName === "BODY") {
-      parentHeight = window.innerHeight;
-    }
-
-    _.context.clearRect(0, 0, element.width, element.height);
-    _.context.beginPath();
-
-    for (var i = storage.length; i--; ) {
-      var particle = storage[i];
-
-      if (showParticles) {
-        particle._draw(_.context);
+    if (this.options.showParticles) {
+      for (const particle of this.storage) {
+        particle._draw(this.context);
       }
-
-      particle._updateCoordinates(parentWidth, parentHeight);
     }
 
-    if (_.options.connectParticles) {
-      _.connect();
+    if (this.options.connectParticles) {
+      this.connect();
     }
   };
 
@@ -396,51 +380,32 @@ const Particles = (function (window, document) {
     this._updateEdges();
   };
 
-  /**
-   * Updates the edges.
-   *
-   * @private
-   */
   Plugin.prototype._updateEdges = function () {
-    var _ = this,
-      minDistance = _.options.minDistance,
-      sqrt = Math.sqrt,
-      abs = Math.abs,
-      storage = _.storage,
-      storageLength = storage.length;
+    const minDistance = this.options.minDistance;
+    const storageLength = this.storage.length;
 
     for (let i = 0; i < storageLength; i++) {
-      const p1 = storage[i];
+      const p1 = this.storage[i];
 
       for (let j = i + 1; j < storageLength; j++) {
-        const p2 = storage[j];
+        const p2 = this.storage[j];
 
         const r = p1.x - p2.x;
-        if (abs(r) > minDistance) {
+        if (Math.abs(r) > minDistance) {
           break;
         }
 
         const dy = p1.y - p2.y;
-        const distance = sqrt(r * r + dy * dy);
+        const distance = Math.sqrt(r * r + dy * dy);
         if (distance <= minDistance) {
-          _._drawEdge(p1, p2, 1.2 - distance / minDistance);
+          this._drawEdge(p1, p2, 1.2 - distance / minDistance);
         }
       }
     }
   };
 
-  /**
-   * Draws an edge between two points.
-   *
-   * @private
-   * @param {Particle} p1
-   * @param {Particle} p2
-   * @param {number} opacity
-   */
   Plugin.prototype._drawEdge = function (p1, p2, opacity) {
-    var _ = this,
-      gradient = _.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-
+    const gradient = this.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
     gradient.addColorStop(
       0,
       `rgba(${p1.rgb.r},${p1.rgb.g},${p1.rgb.b},${opacity})`
@@ -450,21 +415,14 @@ const Particles = (function (window, document) {
       `rgba(${p2.rgb.r},${p2.rgb.g},${p2.rgb.b},${opacity})`
     );
 
-    _.context.beginPath();
-    _.context.moveTo(p1.x, p1.y);
-    _.context.lineTo(p2.x, p2.y);
-    _.context.strokeStyle = gradient;
-    _.context.stroke();
-    _.context.closePath();
+    this.context.beginPath();
+    this.context.moveTo(p1.x, p1.y);
+    this.context.lineTo(p2.x, p2.y);
+    this.context.strokeStyle = gradient;
+    this.context.stroke();
+    this.context.closePath();
   };
 
-  /**
-   * Merges the keys of two objects.
-   *
-   * @private
-   * @param {object} source
-   * @param {object} obj
-   */
   Plugin.prototype._extend = function (source, obj) {
     Object.keys(obj).forEach(function (key) {
       source[key] = obj[key];

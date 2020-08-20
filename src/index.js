@@ -1,15 +1,6 @@
-import Particle from "./Particle";
+import Particle, { hex2rgb } from "./Particle";
+import ParticleList from "./ParticleList";
 
-/*!
- * A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
- *
- * @author Marc Bruederlin <hello@marcbruederlin.com>
- * @version 2.2.3
- * @license MIT
- * @see https://github.com/marcbruederlin/particles.js
- */
-
-/* exported Particles */
 const Particles = (function (window, document) {
   "use strict";
 
@@ -98,7 +89,7 @@ const Particles = (function (window, document) {
     var _ = this;
 
     _.storage = [];
-    _.element.remove();
+    //_.element.remove();
 
     window.removeEventListener("resize", _.listener, false);
     window.clearTimeout(_._animation);
@@ -173,7 +164,6 @@ const Particles = (function (window, document) {
    */
   Plugin.prototype._initializeStorage = function () {
     var _ = this;
-
     _.storage = [];
 
     for (var i = _.options.maxParticles; i--; ) {
@@ -419,21 +409,19 @@ const Particles = (function (window, document) {
       storage = _.storage,
       storageLength = storage.length;
 
-    for (var i = 0; i < storageLength; i++) {
-      var p1 = storage[i];
+    for (let i = 0; i < storageLength; i++) {
+      const p1 = storage[i];
 
-      for (var j = i + 1; j < storageLength; j++) {
-        var p2 = storage[j],
-          distance,
-          r = p1.x - p2.x,
-          dy = p1.y - p2.y;
+      for (let j = i + 1; j < storageLength; j++) {
+        const p2 = storage[j];
 
-        distance = sqrt(r * r + dy * dy);
-
+        const r = p1.x - p2.x;
         if (abs(r) > minDistance) {
           break;
         }
 
+        const dy = p1.y - p2.y;
+        const distance = sqrt(r * r + dy * dy);
         if (distance <= minDistance) {
           _._drawEdge(p1, p2, 1.2 - distance / minDistance);
         }
@@ -453,22 +441,19 @@ const Particles = (function (window, document) {
     var _ = this,
       gradient = _.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
 
-    var color1 = this._hex2rgb(p1.color);
-    var color2 = this._hex2rgb(p2.color);
-
     gradient.addColorStop(
       0,
-      "rgba(" + color1.r + "," + color1.g + "," + color1.b + "," + opacity + ")"
+      `rgba(${p1.rgb.r},${p1.rgb.g},${p1.rgb.b},${opacity})`
     );
     gradient.addColorStop(
       1,
-      "rgba(" + color2.r + "," + color2.g + "," + color2.b + "," + opacity + ")"
+      `rgba(${p2.rgb.r},${p2.rgb.g},${p2.rgb.b},${opacity})`
     );
 
     _.context.beginPath();
-    _.context.strokeStyle = gradient;
     _.context.moveTo(p1.x, p1.y);
     _.context.lineTo(p2.x, p2.y);
+    _.context.strokeStyle = gradient;
     _.context.stroke();
     _.context.closePath();
   };
@@ -486,25 +471,6 @@ const Particles = (function (window, document) {
     });
 
     return source;
-  };
-
-  /**
-   * Converts a hex string to a rgb object.
-   *
-   * @private
-   * @param {string} hex
-   * @return {object}
-   */
-  Plugin.prototype._hex2rgb = function (hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-    return result
-      ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16),
-        }
-      : null;
   };
 
   /**
@@ -533,16 +499,4 @@ const Particles = (function (window, document) {
   return Plugin;
 })(window, document);
 
-//(function() {
-//'use strict';
-
-//if(typeof define === 'function' && define.amd) {
-//define('Particles', function () { return Particles; });
-//} else if(typeof module !== 'undefined' && module.exports) {
-//module.exports = Particles;
-//} else {
-//window.Particles = Particles;
-//}
-//})();
-
-export { Particle, Particles };
+export { Particle, Particles, hex2rgb };

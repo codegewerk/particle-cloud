@@ -2,37 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-      }
-
-      .background {
-        position: absolute;
-        display: block;
-        top: 0;
-        left: 0;
-        z-index: 0;
-        height: 100%;
-      }
-    </style>
   </head>
   <body>
-    <canvas class="background"></canvas>
+    <div style="width: 500px; height: 500px;">
+      <canvas class="background"></canvas>
+    </div>
     <script src="./dist/particles.js"></script>
     <script>
       const benchmarks = [];
 
-      function bench(name, iterator, iterations = 1000) {
-        const start = window.performance.now();
+      function bench(name, options, iterations = 1000) {
+        const { setup, iterate, teardown } = getFunctions(options);
+
+        const runs = [];
         for (let i = 0; i < iterations; i++) {
-          iterator();
+          const context = setup();
+          const start = window.performance.now();
+          iterate(context);
+          const end = window.performance.now();
+          const diff = end - start;
+          runs.push(diff);
+          teardown(context);
         }
-        const end = window.performance.now();
-        const total = end - start;
+
+        const total = runs.reduce((sum, diff) => sum + diff, 0);
         const time_per_iter = total / iterations;
 
         benchmarks.push({
@@ -43,13 +36,42 @@
         });
       }
 
-      const instance = new window.particles.Particles();
-      instance.init({
-        connectParticles: true,
-        selector: ".background",
-      });
+      function getFunctions(options) {
+        if (typeof options === "function") {
+          return {
+            setup: () => {},
+            iterate: options,
+            teardown: () => {},
+          };
+        } else {
+          return {
+            setup: options.setup || (() => {}),
+            iterate: options.iterate,
+            teardown: options.teardown || (() => {}),
+          };
+        }
+      }
 
-      bench("step", () => instance.step(), 100);
+      bench(
+        "step",
+        {
+          setup: () => {
+            const instance = new window.particles.Particles();
+            instance.init({
+              connectParticles: true,
+              selector: ".background",
+            });
+            return instance;
+          },
+          iterate: (instance) => {
+            instance.step();
+          },
+          teardown: (instance) => instance.destroy(),
+        },
+        200
+      );
+
+      bench("hex2rgb", () => window.particles.hex2rgb("#fe49ef"), 100000);
 
       console.table(benchmarks);
     </script>

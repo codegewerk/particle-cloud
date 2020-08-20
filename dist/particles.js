@@ -91,11 +91,12 @@ var particles =
 /*!*************************!*\
   !*** ./src/Particle.js ***!
   \*************************/
-/*! exports provided: default */
+/*! exports provided: default, hex2rgb */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hex2rgb", function() { return hex2rgb; });
 const Particle = function (options) {
   var _ = this,
     random = Math.random,
@@ -104,6 +105,8 @@ const Particle = function (options) {
       options.color instanceof Array
         ? options.color[Math.floor(Math.random() * options.color.length)]
         : options.color;
+
+  _.rgb = hex2rgb(color);
 
   var canvas = document.querySelector(options.selector);
   _.x = canvas.offsetParent
@@ -161,6 +164,73 @@ Particle.prototype._updateCoordinates = function (parentWidth, parentHeight) {
 
 /* harmony default export */ __webpack_exports__["default"] = (Particle);
 
+const pattern = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
+function hex2rgb(hex) {
+  const result = pattern.exec(hex);
+
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+}
+
+
+/***/ }),
+
+/***/ "./src/ParticleList.js":
+/*!*****************************!*\
+  !*** ./src/ParticleList.js ***!
+  \*****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParticleList; });
+class ParticleList {
+  constructor() {
+    this.x = [];
+    this.y = [];
+    this.vx = [];
+    this.vy = [];
+    this.radius = [];
+  }
+
+  createParticle(options) {
+    const speed = options.speed;
+    const color =
+      options.color instanceof Array
+        ? options.color[Math.floor(Math.random() * options.color.length)]
+        : options.color;
+
+    const canvas = document.querySelector(options.selector);
+    const x = canvas.offsetParent
+      ? Math.random() * canvas.offsetParent.clientWidth
+      : Math.random() * canvas.clientWidth;
+    this.x.push(x);
+
+    if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
+      const y = Math.random() * window.innerHeight;
+      this.y.push(y);
+    } else {
+      const y = canvas.offsetParent
+        ? Math.random() * canvas.offsetParent.clientHeight
+        : Math.random() * canvas.clientHeight;
+      this.y.push(y);
+    }
+
+    const vx = Math.random() * speed * 2 - speed;
+    this.vx.push(vx);
+    const vy = Math.random() * speed * 2 - speed;
+    this.vy.push(vx);
+    const radius = Math.random() * Math.random() * options.sizeVariations;
+    this.radius.push(vx);
+  }
+}
+
 
 /***/ }),
 
@@ -168,7 +238,7 @@ Particle.prototype._updateCoordinates = function (parentWidth, parentHeight) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: Particle, Particles */
+/*! exports provided: Particle, Particles, hex2rgb */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -177,18 +247,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Particle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Particle */ "./src/Particle.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Particle", function() { return _Particle__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hex2rgb", function() { return _Particle__WEBPACK_IMPORTED_MODULE_0__["hex2rgb"]; });
+
+/* harmony import */ var _ParticleList__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ParticleList */ "./src/ParticleList.js");
 
 
-/*!
- * A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
- *
- * @author Marc Bruederlin <hello@marcbruederlin.com>
- * @version 2.2.3
- * @license MIT
- * @see https://github.com/marcbruederlin/particles.js
- */
 
-/* exported Particles */
 const Particles = (function (window, document) {
   "use strict";
 
@@ -277,7 +341,7 @@ const Particles = (function (window, document) {
     var _ = this;
 
     _.storage = [];
-    _.element.remove();
+    //_.element.remove();
 
     window.removeEventListener("resize", _.listener, false);
     window.clearTimeout(_._animation);
@@ -352,7 +416,6 @@ const Particles = (function (window, document) {
    */
   Plugin.prototype._initializeStorage = function () {
     var _ = this;
-
     _.storage = [];
 
     for (var i = _.options.maxParticles; i--; ) {
@@ -598,21 +661,19 @@ const Particles = (function (window, document) {
       storage = _.storage,
       storageLength = storage.length;
 
-    for (var i = 0; i < storageLength; i++) {
-      var p1 = storage[i];
+    for (let i = 0; i < storageLength; i++) {
+      const p1 = storage[i];
 
-      for (var j = i + 1; j < storageLength; j++) {
-        var p2 = storage[j],
-          distance,
-          r = p1.x - p2.x,
-          dy = p1.y - p2.y;
+      for (let j = i + 1; j < storageLength; j++) {
+        const p2 = storage[j];
 
-        distance = sqrt(r * r + dy * dy);
-
+        const r = p1.x - p2.x;
         if (abs(r) > minDistance) {
           break;
         }
 
+        const dy = p1.y - p2.y;
+        const distance = sqrt(r * r + dy * dy);
         if (distance <= minDistance) {
           _._drawEdge(p1, p2, 1.2 - distance / minDistance);
         }
@@ -632,22 +693,19 @@ const Particles = (function (window, document) {
     var _ = this,
       gradient = _.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
 
-    var color1 = this._hex2rgb(p1.color);
-    var color2 = this._hex2rgb(p2.color);
-
     gradient.addColorStop(
       0,
-      "rgba(" + color1.r + "," + color1.g + "," + color1.b + "," + opacity + ")"
+      `rgba(${p1.rgb.r},${p1.rgb.g},${p1.rgb.b},${opacity})`
     );
     gradient.addColorStop(
       1,
-      "rgba(" + color2.r + "," + color2.g + "," + color2.b + "," + opacity + ")"
+      `rgba(${p2.rgb.r},${p2.rgb.g},${p2.rgb.b},${opacity})`
     );
 
     _.context.beginPath();
-    _.context.strokeStyle = gradient;
     _.context.moveTo(p1.x, p1.y);
     _.context.lineTo(p2.x, p2.y);
+    _.context.strokeStyle = gradient;
     _.context.stroke();
     _.context.closePath();
   };
@@ -665,25 +723,6 @@ const Particles = (function (window, document) {
     });
 
     return source;
-  };
-
-  /**
-   * Converts a hex string to a rgb object.
-   *
-   * @private
-   * @param {string} hex
-   * @return {object}
-   */
-  Plugin.prototype._hex2rgb = function (hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-    return result
-      ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16),
-        }
-      : null;
   };
 
   /**
@@ -711,18 +750,6 @@ const Particles = (function (window, document) {
 
   return Plugin;
 })(window, document);
-
-//(function() {
-//'use strict';
-
-//if(typeof define === 'function' && define.amd) {
-//define('Particles', function () { return Particles; });
-//} else if(typeof module !== 'undefined' && module.exports) {
-//module.exports = Particles;
-//} else {
-//window.Particles = Particles;
-//}
-//})();
 
 
 

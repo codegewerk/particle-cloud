@@ -7,6 +7,8 @@ const Particle = function (options) {
         ? options.color[Math.floor(Math.random() * options.color.length)]
         : options.color;
 
+  _.rgb = hex2rgb(color);
+
   var canvas = document.querySelector(options.selector);
   _.x = canvas.offsetParent
     ? random() * canvas.offsetParent.clientWidth
@@ -62,3 +64,16 @@ Particle.prototype._updateCoordinates = function (parentWidth, parentHeight) {
 };
 
 export default Particle;
+
+const pattern = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
+export function hex2rgb(hex) {
+  const result = pattern.exec(hex);
+
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+}

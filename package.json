@@ -2,9 +2,8 @@
   "name": "@codegewerk/particle-cloud",
   "version": "1.0.1",
   "description": "A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.",
-  "types": "index.d.ts",
+  "types": "dist/index.d.ts",
   "main": "dist/particles.min.js",
-  "module": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codegewerk/particle-cloud.git"

@@ -120,14 +120,12 @@ const Particle = function (options, clientHeight, clientWidth) {
 Particle.prototype._draw = function (context) {
   var _ = this;
 
-  context.save();
   context.translate(_.x, _.y);
   context.moveTo(0, 0);
   context.beginPath();
   context.arc(0, 0, _.radius, 0, Math.PI * 2, false);
   context.fillStyle = _.color;
   context.fill();
-  context.restore();
 };
 
 Particle.prototype._updateCoordinates = function (parentWidth, parentHeight) {
@@ -170,412 +168,67 @@ function hex2rgb(hex) {
 
 /***/ }),
 
-/***/ "./src/index.js":
-/*!**********************!*\
-  !*** ./src/index.js ***!
-  \**********************/
-/*! exports provided: Particle, Particles, hex2rgb */
+/***/ "./src/ParticleField.js":
+/*!******************************!*\
+  !*** ./src/ParticleField.js ***!
+  \******************************/
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Particles", function() { return Particles; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParticleField; });
 /* harmony import */ var _Particle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Particle */ "./src/Particle.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Particle", function() { return _Particle__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hex2rgb", function() { return _Particle__WEBPACK_IMPORTED_MODULE_0__["hex2rgb"]; });
 
 
+class ParticleField {
+  constructor(options, context, canvasWidth, canvasHeight) {
+    console.assert(typeof canvasWidth === "number");
+    console.assert(typeof canvasHeight === "number");
+    console.assert(options.color);
+    console.assert(options.speed);
 
-const Particles = (function (window, document) {
-  function particleCompareFunc(p1, p2) {
-    if (p1.x < p2.x) {
-      return -1;
-    } else if (p1.x > p2.x) {
-      return 1;
-    } else if (p1.y < p2.y) {
-      return -1;
-    } else if (p1.y > p2.y) {
-      return 1;
+    this.options = options;
+    this.context = context;
+    this.canvasWidth = canvasWidth;
+    this.canvasHeight = canvasHeight;
+
+    this.particles = [];
+    for (var i = options.maxParticles; i--; ) {
+      this.particles.push(new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](options, canvasHeight, canvasWidth));
     }
-
-    return 0;
   }
 
-  const Plugin = (function () {
-    function Plugin() {
-      var _ = this;
-
-      _.defaults = {
-        responsive: null,
-        selector: null,
-        maxParticles: 100,
-        sizeVariations: 3,
-        showParticles: true,
-        speed: 0.5,
-        color: "#000000",
-        minDistance: 120,
-        connectParticles: false,
-      };
-
-      _.element = null;
-      _.context = null;
-      _.ratio = null;
-      _.breakpoints = [];
-      _.activeBreakpoint = null;
-      _.breakpointSettings = [];
-      _.originalSettings = null;
-      _.storage = [];
-      _.usingPolyfill = false;
+  move() {
+    for (const particle of this.particles) {
+      particle._updateCoordinates(this.canvasWidth, this.canvasHeight);
     }
+  }
 
-    return Plugin;
-  })();
-
-  Plugin.prototype.init = function (settings) {
-    var _ = this;
-
-    _.options = _._extend(_.defaults, settings);
-    _.originalSettings = JSON.parse(JSON.stringify(_.options));
-
-    _._animate = _._animate.bind(_);
-
-    _._initializeCanvas();
-    _._initializeEvents();
-    _._registerBreakpoints();
-    _._checkResponsive();
-    _._initializeStorage();
-
-    return _;
-  };
-
-  Plugin.prototype.start = function () {
-    this._animate();
-  };
-
-  /**
-   * Public method to destroy the plugin.
-   *
-   * @public
-   */
-  Plugin.prototype.destroy = function () {
-    var _ = this;
-
-    _.storage = [];
-
-    window.removeEventListener("resize", _.listener, false);
-    window.clearTimeout(_._animation);
-    cancelAnimationFrame(_._animation);
-  };
-
-  /**
-   * Setup the canvas element.
-   *
-   * @private
-   */
-  Plugin.prototype._initializeCanvas = function () {
-    var _ = this,
-      devicePixelRatio,
-      backingStoreRatio;
-
-    if (!_.options.selector) {
-      console.warn(
-        "particles.js: No selector specified! Check https://github.com/marcbruederlin/particles.js#options"
-      );
-      return false;
-    }
-
-    _.element = document.querySelector(_.options.selector);
-    _.context = _.element.getContext("2d");
-
-    devicePixelRatio = window.devicePixelRatio || 1;
-    backingStoreRatio =
-      _.context.webkitBackingStorePixelRatio ||
-      _.context.mozBackingStorePixelRatio ||
-      _.context.msBackingStorePixelRatio ||
-      _.context.oBackingStorePixelRatio ||
-      _.context.backingStorePixelRatio ||
-      1;
-
-    _.ratio = devicePixelRatio / backingStoreRatio;
-    _.element.width = _.element.offsetParent
-      ? _.element.offsetParent.clientWidth * _.ratio
-      : _.element.clientWidth * _.ratio;
-
-    if (_.element.offsetParent && _.element.offsetParent.nodeName === "BODY") {
-      _.element.height = window.innerHeight * _.ratio;
-    } else {
-      _.element.height = _.element.offsetParent
-        ? _.element.offsetParent.clientHeight * _.ratio
-        : _.element.clientHeight * _.ratio;
-    }
-    _.element.style.width = "100%";
-    _.element.style.height = "100%";
-
-    _.context.scale(_.ratio, _.ratio);
-  };
-
-  /**
-   * Register event listeners.
-   *
-   * @private
-   */
-  Plugin.prototype._initializeEvents = function () {
-    var _ = this;
-
-    _.listener = function () {
-      _._resize();
-    }.bind(this);
-    window.addEventListener("resize", _.listener, false);
-  };
-
-  /**
-   * Initialize the particle storage.
-   *
-   * @private
-   */
-  Plugin.prototype._initializeStorage = function () {
-    this.storage = [];
-
-    const [clientWidth, clientHeight] = this.getDimensions();
-    for (var i = this.options.maxParticles; i--; ) {
-      this.storage.push(new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](this.options, clientHeight, clientWidth));
-    }
-  };
-
-  Plugin.prototype.getDimensions = function () {
-    const canvas = this.element;
-
-    let clientHeight;
-    if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
-      clientHeight = window.innerHeight;
-    } else {
-      clientHeight = canvas.offsetParent
-        ? canvas.offsetParent.clientHeight
-        : canvas.clientHeight;
-    }
-
-    const clientWidth = canvas.offsetParent
-      ? canvas.offsetParent.clientWidth
-      : canvas.clientWidth;
-
-    return [clientWidth, clientHeight];
-  };
-
-  /**
-   * Register responsive breakpoints if the user declared some.
-   *
-   * @private
-   */
-  Plugin.prototype._registerBreakpoints = function () {
-    var _ = this,
-      breakpoint,
-      currentBreakpoint,
-      l,
-      responsiveSettings = _.options.responsive || null;
-
-    if (
-      typeof responsiveSettings === "object" &&
-      responsiveSettings !== null &&
-      responsiveSettings.length
-    ) {
-      for (breakpoint in responsiveSettings) {
-        l = _.breakpoints.length - 1;
-        currentBreakpoint = responsiveSettings[breakpoint].breakpoint;
-
-        if (responsiveSettings.hasOwnProperty(breakpoint)) {
-          while (l >= 0) {
-            if (_.breakpoints[l] && _.breakpoints[l] === currentBreakpoint) {
-              _.breakpoints.splice(l, 1);
-            }
-
-            l--;
-          }
-
-          _.breakpoints.push(currentBreakpoint);
-          _.breakpointSettings[currentBreakpoint] =
-            responsiveSettings[breakpoint].options;
-        }
-      }
-
-      _.breakpoints.sort(function (a, b) {
-        return b - a;
-      });
-    }
-  };
-
-  /**
-   * Check if a breakpoint is active and load the breakpoints options.
-   *
-   * @private
-   */
-  Plugin.prototype._checkResponsive = function () {
-    var _ = this,
-      breakpoint,
-      targetBreakpoint = false,
-      windowWidth = window.innerWidth;
-
-    if (
-      _.options.responsive &&
-      _.options.responsive.length &&
-      _.options.responsive !== null
-    ) {
-      targetBreakpoint = null;
-
-      for (breakpoint in _.breakpoints) {
-        if (_.breakpoints.hasOwnProperty(breakpoint)) {
-          if (windowWidth <= _.breakpoints[breakpoint]) {
-            targetBreakpoint = _.breakpoints[breakpoint];
-          }
-        }
-      }
-
-      if (targetBreakpoint !== null) {
-        _.activeBreakpoint = targetBreakpoint;
-        _.options = _._extend(
-          _.options,
-          _.breakpointSettings[targetBreakpoint]
-        );
-      } else {
-        if (_.activeBreakpoint !== null) {
-          _.activeBreakpoint = null;
-          targetBreakpoint = null;
-
-          _.options = _._extend(_.options, _.originalSettings);
-        }
-      }
-    }
-  };
-
-  Plugin.prototype._refresh = function () {
-    var _ = this;
-
-    _._initializeStorage();
-    _._draw();
-  };
-
-  Plugin.prototype._resize = function () {
-    var _ = this;
-
-    _.element.width = _.element.offsetParent
-      ? _.element.offsetParent.clientWidth * _.ratio
-      : _.element.clientWidth * _.ratio;
-
-    if (_.element.offsetParent && _.element.offsetParent.nodeName === "BODY") {
-      _.element.height = window.innerHeight * _.ratio;
-    } else {
-      _.element.height = _.element.offsetParent
-        ? _.element.offsetParent.clientHeight * _.ratio
-        : _.element.clientHeight * _.ratio;
-    }
-
-    _.context.scale(_.ratio, _.ratio);
-
-    clearTimeout(_.windowDelay);
-
-    _.windowDelay = window.setTimeout(function () {
-      _._checkResponsive();
-      _._refresh();
-    }, 50);
-  };
-
-  /**
-   * Animates the plugin particles by calling the draw method.
-   *
-   * @private
-   */
-  Plugin.prototype._animate = function () {
-    var _ = this;
-
-    _.step();
-    _._animation = window.requestAnimFrame(_._animate);
-  };
-
-  Plugin.prototype.step = function () {
-    this.move();
-    this._draw();
-  };
-
-  Plugin.prototype.move = function () {
-    const [clientWidth, clientHeight] = this.getDimensions();
-
-    for (const particle of this.storage) {
-      particle._updateCoordinates(clientWidth, clientHeight);
-    }
-  };
-
-  /**
-   * Restarts the particles animation by calling _animate.
-   *
-   * @public
-   */
-  Plugin.prototype.resumeAnimation = function () {
-    var _ = this;
-
-    if (!_._animation) {
-      _._animate();
-    }
-  };
-
-  /**
-   * Pauses/stops the particle animation.
-   *
-   * @public
-   */
-  Plugin.prototype.pauseAnimation = function () {
-    var _ = this;
-
-    if (!_._animation) {
-      return;
-    }
-
-    if (_.usingPolyfill) {
-      window.clearTimeout(_._animation);
-    } else {
-      var cancelAnimationFrame =
-        window.cancelAnimationFrame ||
-        window.webkitCancelAnimationFrame ||
-        window.mozCancelAnimationFrame;
-      cancelAnimationFrame(_._animation);
-    }
-
-    _._animation = null;
-  };
-
-  /**
-   * Draws the plugin particles.
-   *
-   * @private
-   */
-  Plugin.prototype._draw = function () {
-    this.context.clearRect(0, 0, this.element.width, this.element.height);
-    this.context.beginPath();
-
+  draw() {
     if (this.options.showParticles) {
-      for (const particle of this.storage) {
+      this.context.save();
+      for (const particle of this.particles) {
         particle._draw(this.context);
       }
+      this.context.restore();
     }
 
     if (this.options.connectParticles) {
-      this.connect();
+      this.particles.sort(particleCompareFunc);
+      this.updateEdges();
     }
-  };
+  }
 
-  Plugin.prototype.connect = function () {
-    this.storage.sort(particleCompareFunc);
-    this._updateEdges();
-  };
-
-  Plugin.prototype._updateEdges = function () {
+  updateEdges() {
     const minDistance = this.options.minDistance;
-    const storageLength = this.storage.length;
+    const storageLength = this.particles.length;
 
     for (let i = 0; i < storageLength; i++) {
-      const p1 = this.storage[i];
+      const p1 = this.particles[i];
 
       for (let j = i + 1; j < storageLength; j++) {
-        const p2 = this.storage[j];
+        const p2 = this.particles[j];
 
         const r = p1.x - p2.x;
         if (Math.abs(r) > minDistance) {
@@ -585,13 +238,13 @@ const Particles = (function (window, document) {
         const dy = p1.y - p2.y;
         const distance = Math.sqrt(r * r + dy * dy);
         if (distance <= minDistance) {
-          this._drawEdge(p1, p2, 1.2 - distance / minDistance);
+          this.drawEdge(p1, p2, 1.2 - distance / minDistance);
         }
       }
     }
-  };
+  }
 
-  Plugin.prototype._drawEdge = function (p1, p2, opacity) {
+  drawEdge(p1, p2, opacity) {
     const gradient = this.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
     gradient.addColorStop(
       0,
@@ -607,42 +260,307 @@ const Particles = (function (window, document) {
     this.context.lineTo(p2.x, p2.y);
     this.context.strokeStyle = gradient;
     this.context.stroke();
-    this.context.closePath();
-  };
+  }
+}
 
-  Plugin.prototype._extend = function (source, obj) {
-    Object.keys(obj).forEach(function (key) {
-      source[key] = obj[key];
-    });
+function particleCompareFunc(p1, p2) {
+  if (p1.x < p2.x) {
+    return -1;
+  } else if (p1.x > p2.x) {
+    return 1;
+  } else if (p1.y < p2.y) {
+    return -1;
+  } else if (p1.y > p2.y) {
+    return 1;
+  }
 
-    return source;
-  };
+  return 0;
+}
 
-  /**
-   * A polyfill for requestAnimFrame.
-   *
-   * @return {function}
-   */
-  window.requestAnimFrame = (function () {
-    var _ = this,
-      requestAnimationFrame =
-        window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame;
 
-    if (requestAnimationFrame) {
-      return requestAnimationFrame;
+/***/ }),
+
+/***/ "./src/index.js":
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+/*! exports provided: Particle, Particles, hex2rgb */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Particles", function() { return Particles; });
+/* harmony import */ var _Particle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Particle */ "./src/Particle.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Particle", function() { return _Particle__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hex2rgb", function() { return _Particle__WEBPACK_IMPORTED_MODULE_0__["hex2rgb"]; });
+
+/* harmony import */ var _ParticleField__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ParticleField */ "./src/ParticleField.js");
+
+
+
+class Particles {
+  constructor(settings) {
+    this.options = Object.assign(
+      {
+        responsive: null,
+        selector: null,
+        maxParticles: 100,
+        sizeVariations: 3,
+        showParticles: true,
+        speed: 0.5,
+        color: "#000000",
+        minDistance: 120,
+        connectParticles: false,
+      },
+      settings
+    );
+    this.originalSettings = JSON.parse(JSON.stringify(this.options));
+
+    if (!this.options.selector) {
+      throw new Error(
+        "particles.js: No selector specified! Check https://github.com/marcbruederlin/particles.js#options"
+      );
     }
 
-    _._usingPolyfill = true;
+    this.scheduler = getAnimationFunctions();
+    this.animate = this.animate.bind(this);
 
-    return function (callback) {
+    this.breakpoints = [];
+    this.breakpointSettings = [];
+
+    this._initializeCanvas();
+    this._initializeEvents();
+    this._registerBreakpoints();
+    this._checkResponsive();
+
+    this._initializeStorage();
+  }
+
+  start() {
+    if (!this._animation) this.animate();
+  }
+
+  stop() {
+    if (!this._animation) {
+      return;
+    }
+
+    this.scheduler.cancelFrame(this._animation);
+    this._animation = null;
+  }
+
+  animate() {
+    this.step();
+    this._animation = this.scheduler.requestFrame(this.animate);
+  }
+
+  step() {
+    this.move();
+    this.draw();
+  }
+
+  move() {
+    this.particleField.move();
+  }
+
+  draw() {
+    this.context.clearRect(0, 0, this.element.width, this.element.height);
+    this.particleField.draw();
+  }
+
+  destroy() {
+    window.removeEventListener("resize", this.listener, false);
+    this.stop();
+  }
+}
+
+Particles.prototype._initializeCanvas = function () {
+  this.element = document.querySelector(this.options.selector);
+  this.element.style.width = "100%";
+  this.element.style.height = "100%";
+
+  this.context = this.element.getContext("2d");
+
+  this.ratio = getPixelRatio(this.context);
+  this.setContextScale();
+};
+
+Particles.prototype.setContextScale = function () {
+  const [clientWidth, clientHeight] = this.getDimensions();
+  this.element.width = clientWidth * this.ratio;
+  this.element.height = clientHeight * this.ratio;
+
+  this.context.scale(this.ratio, this.ratio);
+};
+
+Particles.prototype._resize = function () {
+  this.setContextScale();
+
+  clearTimeout(this.windowDelay);
+  this.windowDelay = window.setTimeout(() => {
+    this._checkResponsive();
+    this._refresh();
+  }, 50);
+};
+
+function getPixelRatio(context) {
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const backingStoreRatio =
+    context.webkitBackingStorePixelRatio ||
+    context.mozBackingStorePixelRatio ||
+    context.msBackingStorePixelRatio ||
+    context.oBackingStorePixelRatio ||
+    context.backingStorePixelRatio ||
+    1;
+
+  return devicePixelRatio / backingStoreRatio;
+}
+
+Particles.prototype._initializeEvents = function () {
+  var _ = this;
+
+  _.listener = function () {
+    _._resize();
+  }.bind(this);
+  window.addEventListener("resize", _.listener, false);
+};
+
+Particles.prototype._initializeStorage = function () {
+  const [clientWidth, clientHeight] = this.getDimensions();
+  this.particleField = new _ParticleField__WEBPACK_IMPORTED_MODULE_1__["default"](
+    this.options,
+    this.context,
+    clientWidth,
+    clientHeight
+  );
+};
+
+Particles.prototype.getDimensions = function () {
+  const canvas = this.element;
+
+  let clientHeight;
+  if (canvas.offsetParent && canvas.offsetParent.nodeName === "BODY") {
+    clientHeight = window.innerHeight;
+  } else {
+    clientHeight = canvas.offsetParent
+      ? canvas.offsetParent.clientHeight
+      : canvas.clientHeight;
+  }
+
+  const clientWidth = canvas.offsetParent
+    ? canvas.offsetParent.clientWidth
+    : canvas.clientWidth;
+
+  return [clientWidth, clientHeight];
+};
+
+Particles.prototype._registerBreakpoints = function () {
+  var _ = this,
+    breakpoint,
+    currentBreakpoint,
+    l,
+    responsiveSettings = _.options.responsive || null;
+
+  if (
+    typeof responsiveSettings === "object" &&
+    responsiveSettings !== null &&
+    responsiveSettings.length
+  ) {
+    for (breakpoint in responsiveSettings) {
+      l = _.breakpoints.length - 1;
+      currentBreakpoint = responsiveSettings[breakpoint].breakpoint;
+
+      if (responsiveSettings.hasOwnProperty(breakpoint)) {
+        while (l >= 0) {
+          if (_.breakpoints[l] && _.breakpoints[l] === currentBreakpoint) {
+            _.breakpoints.splice(l, 1);
+          }
+
+          l--;
+        }
+
+        _.breakpoints.push(currentBreakpoint);
+        _.breakpointSettings[currentBreakpoint] =
+          responsiveSettings[breakpoint].options;
+      }
+    }
+
+    _.breakpoints.sort(function (a, b) {
+      return b - a;
+    });
+  }
+};
+
+Particles.prototype._checkResponsive = function () {
+  var _ = this,
+    breakpoint,
+    targetBreakpoint = false,
+    windowWidth = window.innerWidth;
+
+  if (
+    _.options.responsive &&
+    _.options.responsive.length &&
+    _.options.responsive !== null
+  ) {
+    targetBreakpoint = null;
+
+    for (breakpoint in _.breakpoints) {
+      if (_.breakpoints.hasOwnProperty(breakpoint)) {
+        if (windowWidth <= _.breakpoints[breakpoint]) {
+          targetBreakpoint = _.breakpoints[breakpoint];
+        }
+      }
+    }
+
+    if (targetBreakpoint !== null) {
+      _.activeBreakpoint = targetBreakpoint;
+      _.options = extend(_.options, _.breakpointSettings[targetBreakpoint]);
+    } else {
+      if (_.activeBreakpoint !== null) {
+        _.activeBreakpoint = null;
+        targetBreakpoint = null;
+
+        _.options = extend(_.options, _.originalSettings);
+      }
+    }
+  }
+};
+
+Particles.prototype._refresh = function () {
+  var _ = this;
+
+  _._initializeStorage();
+  _.draw();
+};
+
+function extend(source, obj) {
+  Object.keys(obj).forEach(function (key) {
+    source[key] = obj[key];
+  });
+
+  return source;
+}
+
+function getAnimationFunctions() {
+  let requestFrame =
+    window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame;
+
+  let cancelFrame;
+  if (requestFrame) {
+    requestFrame = requestFrame.bind(window);
+    cancelFrame = cancelAnimationFrame.bind(window);
+  } else {
+    requestFrame = function (callback) {
       return window.setTimeout(callback, 1000 / 60);
     };
-  })();
+    cancelFrame = window.clearTimeout.bind(window);
+  }
 
-  return Plugin;
-})(window, document);
+  return { requestFrame, cancelFrame };
+}
 
 
 

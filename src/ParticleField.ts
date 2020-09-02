@@ -1,13 +1,26 @@
 import Particle from "./Particle";
+import { ParticleSettings } from "./Settings";
 
 export default class ParticleField {
-  constructor(options, context, canvasWidth, canvasHeight) {
+  private settings: ParticleSettings;
+  private context: CanvasRenderingContext2D;
+  private canvasWidth: number;
+  private canvasHeight: number;
+
+  private particles: Array<Particle>;
+
+  constructor(
+    options: ParticleSettings,
+    context: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number
+  ) {
     console.assert(typeof canvasWidth === "number");
     console.assert(typeof canvasHeight === "number");
-    console.assert(options.color);
-    console.assert(options.speed);
+    console.assert(options.color !== null);
+    console.assert(options.speed !== null);
 
-    this.options = options;
+    this.settings = options;
     this.context = context;
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
@@ -20,25 +33,25 @@ export default class ParticleField {
 
   move() {
     for (const particle of this.particles) {
-      particle._updateCoordinates(this.canvasWidth, this.canvasHeight);
+      particle.updateCoordinates(this.canvasWidth, this.canvasHeight);
     }
   }
 
   draw() {
-    if (this.options.showParticles) {
+    if (this.settings.showParticles) {
       for (const particle of this.particles) {
-        particle._draw(this.context);
+        particle.draw(this.context);
       }
     }
 
-    if (this.options.connectParticles) {
+    if (this.settings.connectParticles) {
       this.particles.sort(particleCompareFunc);
       this.updateEdges();
     }
   }
 
   updateEdges() {
-    const minDistance = this.options.minDistance;
+    const minDistance = this.settings.minDistance;
     const storageLength = this.particles.length;
 
     for (let i = 0; i < storageLength; i++) {
@@ -61,7 +74,7 @@ export default class ParticleField {
     }
   }
 
-  drawEdge(p1, p2, opacity) {
+  drawEdge(p1: Particle, p2: Particle, opacity: number) {
     const gradient = this.context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
     gradient.addColorStop(
       0,
@@ -80,7 +93,7 @@ export default class ParticleField {
   }
 }
 
-function particleCompareFunc(p1, p2) {
+function particleCompareFunc(p1: Particle, p2: Particle) {
   if (p1.x < p2.x) {
     return -1;
   } else if (p1.x > p2.x) {

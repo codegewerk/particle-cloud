@@ -1,5 +1,23 @@
+import { ParticleSettings } from "./Settings";
+
+export interface ResponsiveOptionEntry {
+  breakpoint: number;
+  options: ParticleSettings;
+}
+
+export interface BreakpointSettingsEntry {
+  breakpoint: number;
+  settings: ParticleSettings;
+}
+
 export default class BreakpointSettings {
-  constructor(settings, responsive) {
+  private defaultSettings: ParticleSettings;
+  private breakpointSettings: Array<BreakpointSettingsEntry>;
+
+  constructor(
+    settings: ParticleSettings,
+    responsive: Array<ResponsiveOptionEntry>
+  ) {
     this.defaultSettings = settings;
 
     this.breakpointSettings = [];
@@ -20,7 +38,7 @@ export default class BreakpointSettings {
     this.breakpointSettings.sort((a, b) => a.breakpoint - b.breakpoint);
   }
 
-  getOptionsForWidth(width) {
+  getOptionsForWidth(width: number) {
     const entry = this.breakpointSettings.find(
       (entry) => entry.breakpoint >= width
     );

@@ -4,7 +4,6 @@ A lightweight, dependency-free and responsive javascript plugin for particle bac
 
 This is a fork of [particles.js](https://github.com/marcbruederlin/particles.js).
 
-![GitHub file size in bytes](https://img.shields.io/github/size/codegewerk/particle-cloud/dist/particles.min.js)
 ![GitHub license](https://img.shields.io/github/license/codegewerk/particle-cloud)
 
 ## Installation

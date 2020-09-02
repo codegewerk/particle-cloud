@@ -6,7 +6,6 @@ class ParticleCloud {
     options = Object.assign(
       {
         responsive: [],
-        selector: null,
         maxParticles: 100,
         sizeVariations: 3,
         showParticles: true,
@@ -18,17 +17,19 @@ class ParticleCloud {
       options
     );
 
-    if (!options.selector) {
+    const { selector, responsive, ...settings } = options;
+
+    if (!selector) {
       throw new Error(
-        "particles.js: No selector specified! Check https://github.com/marcbruederlin/particles.js#options"
+        "particle-cloud: No selector specified! Check https://github.com/codegewerk/particle-cloud#options"
       );
     }
 
     this.scheduler = getAnimationScheduler();
-    this.breakpointOptions = new BreakpointSettings(options);
+    this.breakpointOptions = new BreakpointSettings(settings, responsive);
     this.onResize = () => this.resize();
 
-    this.initializeCanvas(options.selector);
+    this.initializeCanvas(selector);
 
     this.scaleContext();
     this.initializeParticleField();

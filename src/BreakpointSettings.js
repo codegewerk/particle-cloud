@@ -1,7 +1,5 @@
 export default class BreakpointSettings {
-  constructor(options) {
-    const { responsive, ...settings } = options;
-
+  constructor(settings, responsive) {
     this.defaultSettings = settings;
 
     this.breakpointSettings = [];

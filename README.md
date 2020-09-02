@@ -1,5 +1,7 @@
 # particle-cloud
 
+A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
+
 This is a fork of [particles.js](https://github.com/marcbruederlin/particles.js).
 
 ![GitHub file size in bytes](https://img.shields.io/github/size/codegewerk/particle-cloud/dist/particles.min.js)
@@ -7,59 +9,66 @@ This is a fork of [particles.js](https://github.com/marcbruederlin/particles.js)
 
 ## Installation
 
-There are several ways to install particles.js:
+```bash
+npm install -save @codegewerk/particle-cloud
+```
 
-- [Download the latest version](https://github.com/marcbruederlin/particles.js/archive/master.zip)
-- Install with npm: `npm install particlesjs --save`
-- Use the CDN: `https://cdnjs.cloudflare.com/ajax/libs/particlesjs/2.2.3/particles.min.js`
-
-## Usage
-
-Include the minified JS in your HTML (right before the closing body tag).
+Alternatively, the minified package can be used directly via a CDN.
 
 ```html
-<body>
-  …
-  <script src="path/to/particles.min.js"></script>
-</body>
+<script src="https://unpkg.com/@codegewerk/particle-cloud@1.x/dist/particles.min.js"></script>
 ```
 
-Add a canvas element to your markup (it should be the last element)
+## Minimal Example
 
 ```html
-<body>
-  …
-  <canvas class="background"></canvas>
-  <script src="path/to/particles.min.js"></script>
-</body>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      .background {
+        position: absolute;
+        display: block;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="background"></canvas>
+    <script src="https://unpkg.com/@codegewerk/particle-cloud@1.x/dist/particles.min.js"></script>
+    <script>
+      const instance = new ParticleCloud({
+        connectParticles: true,
+        selector: ".background",
+      });
+      instance.start();
+    </script>
+  </body>
+</html>
 ```
 
-Add a few styles to your css.
+## Use as a `npm` module
 
-```css
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
-.background {
-  position: absolute;
-  display: block;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
-```
-
-Initialize the plugin on the `window.onload` event.
+You need to import the `ParticleCloud` class before using the library.
 
 ```js
-window.onload = function () {
-  Particles.init({
-    selector: ".background",
-  });
-};
+import ParticleCloud from "particle-cloud";
+
+const instance = new ParticleCloud({
+  connectParticles: true,
+  selector: ".background",
+});
 ```
 
 ## Options
@@ -74,8 +83,6 @@ window.onload = function () {
 | `minDistance`      | integer            | `120`     | _Optional:_ Distance in `px` for connecting lines                     |
 | `connectParticles` | boolean            | `false`   | _Optional:_ `true`/`false` if connecting lines should be drawn or not |
 | `responsive`       | array              | `null`    | _Optional:_ Array of objects containing breakpoints and options       |
-
-Example how to use the [responsive option](https://marcbruederlin.github.io/particles.js/#responsive-option).
 
 ## License
 

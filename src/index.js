@@ -1,7 +1,6 @@
-import Particle, { hex2rgb } from "./Particle";
 import ParticleField from "./ParticleField";
 
-class Particles {
+class ParticleCloud {
   constructor(settings) {
     this.options = Object.assign(
       {
@@ -257,4 +256,4 @@ function getPixelRatio(context) {
   return devicePixelRatio / backingStoreRatio;
 }
 
-export { Particle, Particles, hex2rgb };
+export default ParticleCloud;

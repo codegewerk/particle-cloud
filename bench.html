@@ -55,7 +55,7 @@
       function setupInstance({ connectParticles } = {}) {
         connectParticles =
           connectParticles === undefined ? true : connectParticles;
-        const instance = new window.particles.Particles({
+        const instance = new ParticleCloud({
           connectParticles,
           selector: ".background",
         });
@@ -113,8 +113,6 @@
         },
         100
       );
-
-      bench("hex2rgb", () => window.particles.hex2rgb("#fe49ef"), 100000);
 
       console.table(benchmarks);
     </script>

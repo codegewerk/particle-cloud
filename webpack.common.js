@@ -5,6 +5,8 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "particles.js",
-    library: "particles",
+    library: "ParticleCloud",
+    libraryExport: "default",
+    libraryTarget: "umd",
   },
 };

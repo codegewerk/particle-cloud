@@ -1,19 +1,19 @@
 {
-  "name": "particlesjs",
-  "version": "2.2.3",
+  "name": "particle-cloud",
+  "version": "1.0.0",
   "description": "A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.",
   "main": "dist/particles.min.js",
   "module": "src/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/marcbruederlin/particles.js"
+    "url": "git+https://github.com/codegewerk/particle-cloud"
   },
-  "author": "Marc Bruederlin <hello@marcbruederlin.com>",
+  "author": "Felix Bernhardt <f.bernhardt@codegewerk.de>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/marcbruederlin/particles.js/issues"
+    "url": "https://github.com/codegewerk/particle-cloud/issues"
   },
-  "homepage": "https://marcbruederlin.github.io/particles.js/",
+  "homepage": "https://github.com/codegewerk/particle-cloud",
   "keywords": [
     "animation",
     "javascript",

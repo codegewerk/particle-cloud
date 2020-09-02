@@ -28,6 +28,11 @@
         const instance = new ParticleCloud({
           connectParticles: true,
           selector: ".background",
+          color: "#000000",
+          responsive: [
+            { breakpoint: 200, options: { color: "#00ff00" } },
+            { breakpoint: 300, options: { color: "#ff0000" } },
+          ],
         });
         instance.start();
       };

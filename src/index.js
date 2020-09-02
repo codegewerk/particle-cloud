@@ -1,10 +1,11 @@
+import BreakpointSettings from "./BreakpointSettings";
 import ParticleField from "./ParticleField";
 
 class ParticleCloud {
-  constructor(settings) {
-    this.options = Object.assign(
+  constructor(options) {
+    options = Object.assign(
       {
-        responsive: null,
+        responsive: [],
         selector: null,
         maxParticles: 100,
         sizeVariations: 3,
@@ -14,35 +15,29 @@ class ParticleCloud {
         minDistance: 120,
         connectParticles: false,
       },
-      settings
+      options
     );
-    this.originalSettings = JSON.parse(JSON.stringify(this.options));
 
-    if (!this.options.selector) {
+    if (!options.selector) {
       throw new Error(
         "particles.js: No selector specified! Check https://github.com/marcbruederlin/particles.js#options"
       );
     }
 
     this.scheduler = getAnimationScheduler();
-
-    this.breakpoints = [];
-    this.breakpointSettings = [];
-
+    this.breakpointOptions = new BreakpointSettings(options);
     this.onResize = () => this.resize();
 
-    this.initializeCanvas();
-    this.registerBreakpoints();
+    this.initializeCanvas(options.selector);
 
     this.scaleContext();
-    this._checkResponsive();
     this.initializeParticleField();
 
     this.subscribeToEvents();
   }
 
-  initializeCanvas() {
-    this.element = document.querySelector(this.options.selector);
+  initializeCanvas(selector) {
+    this.element = document.querySelector(selector);
     this.element.style.width = "100%";
     this.element.style.height = "100%";
 
@@ -50,47 +45,12 @@ class ParticleCloud {
     this.ratio = getPixelRatio(this.context);
   }
 
-  registerBreakpoints() {
-    var _ = this,
-      breakpoint,
-      currentBreakpoint,
-      l,
-      responsiveSettings = _.options.responsive || null;
-
-    if (
-      typeof responsiveSettings === "object" &&
-      responsiveSettings !== null &&
-      responsiveSettings.length
-    ) {
-      for (breakpoint in responsiveSettings) {
-        l = _.breakpoints.length - 1;
-        currentBreakpoint = responsiveSettings[breakpoint].breakpoint;
-
-        if (responsiveSettings.hasOwnProperty(breakpoint)) {
-          while (l >= 0) {
-            if (_.breakpoints[l] && _.breakpoints[l] === currentBreakpoint) {
-              _.breakpoints.splice(l, 1);
-            }
-
-            l--;
-          }
-
-          _.breakpoints.push(currentBreakpoint);
-          _.breakpointSettings[currentBreakpoint] =
-            responsiveSettings[breakpoint].options;
-        }
-      }
-
-      _.breakpoints.sort(function (a, b) {
-        return b - a;
-      });
-    }
-  }
-
   initializeParticleField() {
     const [clientWidth, clientHeight] = this.getDimensions();
+    const settings = this.getResponsiveSettings();
+
     this.particleField = new ParticleField(
-      this.options,
+      settings,
       this.context,
       clientWidth,
       clientHeight
@@ -146,10 +106,10 @@ class ParticleCloud {
     this.scaleContext();
 
     clearTimeout(this.windowDelay);
-    this.windowDelay = window.setTimeout(() => {
-      this._checkResponsive();
-      this.initializeParticleField();
-    }, 50);
+    this.windowDelay = window.setTimeout(
+      () => this.initializeParticleField(),
+      50
+    );
   }
 
   scaleContext() {
@@ -179,48 +139,10 @@ class ParticleCloud {
     return [clientWidth, clientHeight];
   }
 
-  _checkResponsive() {
-    var _ = this,
-      breakpoint,
-      targetBreakpoint = false,
-      windowWidth = window.innerWidth;
-
-    if (
-      _.options.responsive &&
-      _.options.responsive.length &&
-      _.options.responsive !== null
-    ) {
-      targetBreakpoint = null;
-
-      for (breakpoint in _.breakpoints) {
-        if (_.breakpoints.hasOwnProperty(breakpoint)) {
-          if (windowWidth <= _.breakpoints[breakpoint]) {
-            targetBreakpoint = _.breakpoints[breakpoint];
-          }
-        }
-      }
-
-      if (targetBreakpoint !== null) {
-        _.activeBreakpoint = targetBreakpoint;
-        _.options = extend(_.options, _.breakpointSettings[targetBreakpoint]);
-      } else {
-        if (_.activeBreakpoint !== null) {
-          _.activeBreakpoint = null;
-          targetBreakpoint = null;
-
-          _.options = extend(_.options, _.originalSettings);
-        }
-      }
-    }
+  getResponsiveSettings() {
+    const windowWidth = window.innerWidth;
+    return this.breakpointOptions.getOptionsForWidth(windowWidth);
   }
-}
-
-function extend(source, obj) {
-  Object.keys(obj).forEach(function (key) {
-    source[key] = obj[key];
-  });
-
-  return source;
 }
 
 function getAnimationScheduler() {

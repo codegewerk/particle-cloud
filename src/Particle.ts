@@ -15,23 +15,19 @@ export default class Particle {
     clientHeight: number,
     clientWidth: number
   ) {
-    var _ = this,
-      random = Math.random,
-      speed = options.speed,
-      color =
-        options.color instanceof Array
-          ? options.color[Math.floor(Math.random() * options.color.length)]
-          : options.color;
+    this.color =
+      options.color instanceof Array
+        ? options.color[Math.floor(Math.random() * options.color.length)]
+        : options.color;
+    this.rgb = hex2rgb(this.color);
 
-    _.rgb = hex2rgb(color);
+    this.x = Math.random() * clientWidth;
+    this.y = Math.random() * clientHeight;
 
-    _.x = random() * clientWidth;
-    _.y = random() * clientHeight;
-
-    _.vx = random() * speed * 2 - speed;
-    _.vy = random() * speed * 2 - speed;
-    _.radius = random() * random() * options.sizeVariations;
-    _.color = color;
+    const speed = options.speed;
+    this.vx = Math.random() * speed * 2 - speed;
+    this.vy = Math.random() * speed * 2 - speed;
+    this.radius = Math.random() * Math.random() * options.sizeVariations;
   }
 
   draw(context: CanvasRenderingContext2D) {
@@ -77,11 +73,13 @@ const pattern = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
 function hex2rgb(hex: string): RGBColor {
   const result = pattern.exec(hex);
 
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : null;
+  if (result) {
+    return {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16),
+    };
+  } else {
+    throw new Error(`particle-cloud: Invalid hex color value: ${hex}`);
+  }
 }

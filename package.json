@@ -21,12 +21,13 @@
     "responsive"
   ],
   "scripts": {
-    "build": "webpack",
-    "build:watch": "webpack --watch"
+    "build": "webpack --config webpack.prod.js",
+    "watch": "webpack --config webpack.dev.js --watch"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "webpack-merge": "^5.1.3"
   }
 }

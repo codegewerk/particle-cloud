@@ -1,23 +1,62 @@
-import BreakpointSettings from "./BreakpointSettings";
+import BreakpointSettings, {
+  ResponsiveOptionEntry,
+} from "./BreakpointSettings";
 import ParticleField from "./ParticleField";
 
-class ParticleCloud {
-  constructor(options) {
-    options = Object.assign(
-      {
-        responsive: [],
-        maxParticles: 100,
-        sizeVariations: 3,
-        showParticles: true,
-        speed: 0.5,
-        color: "#000000",
-        minDistance: 120,
-        connectParticles: false,
-      },
-      options
-    );
+import { ParticleSettings } from "./Settings";
 
-    const { selector, responsive, ...settings } = options;
+interface Options extends ParticleSettings {
+  selector: string;
+  responsive: Array<ResponsiveOptionEntry>;
+}
+
+function parseOptions(options: unknown): Options {
+  options = Object.assign(
+    {
+      responsive: [],
+      maxParticles: 100,
+      sizeVariations: 3,
+      showParticles: true,
+      speed: 0.5,
+      color: "#000000",
+      minDistance: 120,
+      connectParticles: false,
+    },
+    options
+  );
+
+  return options as Options;
+}
+
+function getElement(selector: string): HTMLCanvasElement {
+  const element = document.querySelector<HTMLCanvasElement>(selector);
+
+  if (element === null)
+    throw new Error(
+      `particle-cloud: can not find canvas element with given selector: ${selector}`
+    );
+  else return element;
+}
+
+class ParticleCloud {
+  private scheduler: AnimationScheduler;
+  private breakpointOptions: BreakpointSettings;
+
+  private element: HTMLCanvasElement;
+  private context: CanvasRenderingContext2D;
+  private ratio: number;
+
+  private particleField: ParticleField;
+
+  private _animation: number | undefined;
+  private _windowDelay: number | undefined;
+
+  private onResize: () => void;
+
+  constructor(options: unknown) {
+    const parsedOptions = parseOptions(options);
+
+    const { selector, responsive, ...settings } = parsedOptions;
 
     if (!selector) {
       throw new Error(
@@ -29,33 +68,25 @@ class ParticleCloud {
     this.breakpointOptions = new BreakpointSettings(settings, responsive);
     this.onResize = () => this.resize();
 
-    this.initializeCanvas(selector);
+    this.element = getElement(selector);
+    this.element.style.width = "100%";
+    this.element.style.height = "100%";
+
+    this.context = this.element.getContext("2d") as CanvasRenderingContext2D;
+
+    this.ratio = getPixelRatio(this.context);
 
     this.scaleContext();
-    this.initializeParticleField();
+    this.particleField = this.createParticleField();
 
     this.subscribeToEvents();
   }
 
-  initializeCanvas(selector) {
-    this.element = document.querySelector(selector);
-    this.element.style.width = "100%";
-    this.element.style.height = "100%";
-
-    this.context = this.element.getContext("2d");
-    this.ratio = getPixelRatio(this.context);
-  }
-
-  initializeParticleField() {
+  createParticleField() {
     const [clientWidth, clientHeight] = this.getDimensions();
     const settings = this.getResponsiveSettings();
 
-    this.particleField = new ParticleField(
-      settings,
-      this.context,
-      clientWidth,
-      clientHeight
-    );
+    return new ParticleField(settings, this.context, clientWidth, clientHeight);
   }
 
   start() {
@@ -68,7 +99,7 @@ class ParticleCloud {
     }
 
     this.scheduler.cancelFrame(this._animation);
-    this._animation = null;
+    this._animation = undefined;
   }
 
   animate() {
@@ -106,11 +137,10 @@ class ParticleCloud {
   resize() {
     this.scaleContext();
 
-    clearTimeout(this.windowDelay);
-    this.windowDelay = window.setTimeout(
-      () => this.initializeParticleField(),
-      50
-    );
+    clearTimeout(this._windowDelay);
+    this._windowDelay = window.setTimeout(() => {
+      this.particleField = this.createParticleField();
+    }, 50);
   }
 
   scaleContext() {
@@ -146,10 +176,16 @@ class ParticleCloud {
   }
 }
 
-function getAnimationScheduler() {
+interface AnimationScheduler {
+  requestFrame: typeof window.requestAnimationFrame;
+  cancelFrame: typeof window.cancelAnimationFrame;
+}
+
+function getAnimationScheduler(): AnimationScheduler {
   let requestFrame =
     window.requestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
+    // @ts-ignore: 2339
     window.mozRequestAnimationFrame;
 
   let cancelFrame;
@@ -166,13 +202,18 @@ function getAnimationScheduler() {
   return { requestFrame, cancelFrame };
 }
 
-function getPixelRatio(context) {
+function getPixelRatio(context: CanvasRenderingContext2D) {
   const devicePixelRatio = window.devicePixelRatio || 1;
   const backingStoreRatio =
+    // @ts-ignore: 2339
     context.webkitBackingStorePixelRatio ||
+    // @ts-ignore: 2339
     context.mozBackingStorePixelRatio ||
+    // @ts-ignore: 2339
     context.msBackingStorePixelRatio ||
+    // @ts-ignore: 2339
     context.oBackingStorePixelRatio ||
+    // @ts-ignore: 2339
     context.backingStorePixelRatio ||
     1;
 

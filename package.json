@@ -3,6 +3,7 @@
   "version": "2.2.3",
   "description": "A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.",
   "main": "dist/particles.min.js",
+  "module": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/marcbruederlin/particles.js"

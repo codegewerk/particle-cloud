@@ -52,9 +52,11 @@
         }
       }
 
-      function setupInstance() {
+      function setupInstance({ connectParticles } = {}) {
+        connectParticles =
+          connectParticles === undefined ? true : connectParticles;
         const instance = new window.particles.Particles({
-          connectParticles: true,
+          connectParticles,
           selector: ".background",
         });
         return instance;
@@ -92,6 +94,18 @@
         "draw",
         {
           setup: setupInstance,
+          iterate: (instance) => {
+            instance.draw();
+          },
+          teardown: teardownInstance,
+        },
+        100
+      );
+
+      bench(
+        "draw only points",
+        {
+          setup: () => setupInstance({ connectParticles: false }),
           iterate: (instance) => {
             instance.draw();
           },

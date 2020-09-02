@@ -13,7 +13,7 @@ export default class ParticleField {
     this.canvasHeight = canvasHeight;
 
     this.particles = [];
-    for (var i = options.maxParticles; i--; ) {
+    for (let i = 0; i < options.maxParticles; i++) {
       this.particles.push(new Particle(options, canvasHeight, canvasWidth));
     }
   }
@@ -26,11 +26,9 @@ export default class ParticleField {
 
   draw() {
     if (this.options.showParticles) {
-      this.context.save();
       for (const particle of this.particles) {
         particle._draw(this.context);
       }
-      this.context.restore();
     }
 
     if (this.options.connectParticles) {

@@ -21,10 +21,8 @@ const Particle = function (options, clientHeight, clientWidth) {
 Particle.prototype._draw = function (context) {
   var _ = this;
 
-  context.translate(_.x, _.y);
-  context.moveTo(0, 0);
   context.beginPath();
-  context.arc(0, 0, _.radius, 0, Math.PI * 2, false);
+  context.arc(this.x, this.y, _.radius, 0, Math.PI * 2);
   context.fillStyle = _.color;
   context.fill();
 };

@@ -4,6 +4,7 @@
     "strict": true,
     "module": "ES2020",
     "target": "es6",
-    "allowJs": false
+    "allowJs": false,
+    "declaration": true
   }
 }

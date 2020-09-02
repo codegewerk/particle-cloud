@@ -63,7 +63,7 @@ Alternatively, the minified package can be used directly via a CDN.
 You need to import the `ParticleCloud` class before using the library.
 
 ```js
-import ParticleCloud from "particle-cloud";
+import ParticleCloud from "@codegewerk/particle-cloud";
 
 const instance = new ParticleCloud({
   connectParticles: true,

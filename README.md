@@ -1,10 +1,16 @@
 # particle-cloud
 
+![GitHub license](https://img.shields.io/github/license/codegewerk/particle-cloud)
+
 A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
 
 This is a fork of [particles.js](https://github.com/marcbruederlin/particles.js).
+Compared to the archived original project, this library has several improvements:
 
-![GitHub license](https://img.shields.io/github/license/codegewerk/particle-cloud)
+- Bug fixes
+- Performance improvements, i.e. for the drawing stage
+- Complete port to [Typescript](https://www.typescriptlang.org/)
+- Works with [React](https://reactjs.org/) server-side rendering, and therefore also [Gatsby](https://www.gatsbyjs.com/), out of the box
 
 ## Installation
 
@@ -57,7 +63,7 @@ Alternatively, the minified package can be used directly via a CDN.
 </html>
 ```
 
-## Use as a `npm` module
+## Usage with `npm`
 
 You need to import the `ParticleCloud` class before using the library.
 
@@ -68,6 +74,31 @@ const instance = new ParticleCloud({
   connectParticles: true,
   selector: ".background",
 });
+```
+
+### Usage with React
+
+```jsx
+import React, { useEffect } from "react";
+import ParticleCloud from "@codegewerk/particle-cloud";
+
+export default function ParticleCloudCanvas() {
+  useEffect(() => {
+    const instance = new ParticleCloud({
+      speed: 0.2,
+      maxParticles: 100,
+      selector: ".particles",
+      color: ["#f58220", "#d28645", "#dddddd"],
+      connectParticles: true,
+    });
+
+    instance.start();
+
+    return () => instance.destroy();
+  }, []);
+
+  return <canvas className="particles"></canvas>;
+}
 ```
 
 ## Options

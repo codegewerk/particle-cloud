@@ -1,8 +1,8 @@
 # particle-cloud
 
-![GitHub license](https://img.shields.io/github/license/codegewerk/particle-cloud)
-
 A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
+
+![GitHub license](https://img.shields.io/github/license/codegewerk/particle-cloud)
 
 This is a fork of [particles.js](https://github.com/marcbruederlin/particles.js).
 Compared to the archived original project, this library has several improvements:
@@ -74,6 +74,8 @@ const instance = new ParticleCloud({
   connectParticles: true,
   selector: ".background",
 });
+
+instance.start();
 ```
 
 ### Usage with React
@@ -103,16 +105,68 @@ export default function ParticleCloudCanvas() {
 
 ## Options
 
-| Option             | Type               | Default   | Description                                                           |
+| Key                | Type               | Default   | Description                                                           |
 | ------------------ | ------------------ | --------- | --------------------------------------------------------------------- |
 | `selector`         | string             | -         | _Required:_ The CSS selector of your canvas element                   |
-| `maxParticles`     | integer            | `100`     | _Optional:_ Maximum amount of particles                               |
-| `sizeVariations`   | integer            | `3`       | _Optional:_ Amount of size variations                                 |
-| `speed`            | integer            | `0.5`     | _Optional:_ Movement speed of the particles                           |
+| `maxParticles`     | number             | `100`     | _Optional:_ Amount of particles                                       |
+| `sizeVariations`   | number             | `3`       | _Optional:_ Maximum size of each particle                             |
+| `speed`            | number             | `0.5`     | _Optional:_ Movement speed of each particle                           |
 | `color`            | string or string[] | `#000000` | _Optional:_ Color(s) of the particles and connecting lines            |
-| `minDistance`      | integer            | `120`     | _Optional:_ Distance in `px` for connecting lines                     |
+| `minDistance`      | number             | `120`     | _Optional:_ Distance in `px` for connecting lines                     |
 | `connectParticles` | boolean            | `false`   | _Optional:_ `true`/`false` if connecting lines should be drawn or not |
-| `responsive`       | array              | `null`    | _Optional:_ Array of objects containing breakpoints and options       |
+| `responsive`       | BreakpointEntry[]  | `[]`      | _Optional:_ Array of objects containing breakpoints and options       |
+
+### BreakpointEntry
+
+When any breakpoint options are specified, the library tries to find the smallest breakpoint with is still larger than the
+current screen size.
+If there is not such breakpoint, the library will fall back to the general settings.
+If there is a suitable breakpoint, the relevant options from the general settings are overwritten with the breakpoint specific
+options.
+
+| Key          | Type              | Default | Description                        |
+| ------------ | ----------------- | ------- | ---------------------------------- |
+| `breakpoint` | number            | -       | _Required:_ The breakpoint value   |
+| `options`    | BreakpointOptions | -       | _Required:_ The breakpoint options |
+
+Each `BreakpointOptions` has the following fields:
+
+| Key                | Type               | Default     | Description                                                           |
+| ------------------ | ------------------ | ----------- | --------------------------------------------------------------------- |
+| `maxParticles`     | number             | `undefined` | _Optional:_ Amount of particles                                       |
+| `sizeVariations`   | number             | `undefined` | _Optional:_ Maximum size of each particle                             |
+| `speed`            | number             | `undefined` | _Optional:_ Movement speed of each particle                           |
+| `color`            | string or string[] | `undefined` | _Optional:_ Color(s) of the particles and connecting lines            |
+| `minDistance`      | number             | `undefined` | _Optional:_ Distance in `px` for connecting lines                     |
+| `connectParticles` | boolean            | `undefined` | _Optional:_ `true`/`false` if connecting lines should be drawn or not |
+
+### Example Configuration
+
+```js
+import ParticleCloud from "@codegewerk/particle-cloud";
+
+const instance = new ParticleCloud({
+  selector: ".background",
+  maxParticles: 1000,
+  connectParticles: true,
+  responsive: [
+    {
+      breakpoint: 300,
+      options: {
+        color: "#ff0000",
+        maxParticles: 200,
+      },
+    },
+    {
+      breakpoint: 600,
+      options: {
+        color: "#00ff00",
+        maxParticles: 600,
+      },
+    },
+  ],
+});
+```
 
 ## License
 

@@ -1,8 +1,8 @@
-import { ParticleSettings } from "./Settings";
+import { ParticleSettings, ParticleOptions } from "./Settings";
 
 export interface ResponsiveOptionEntry {
   breakpoint: number;
-  options: ParticleSettings;
+  options: ParticleOptions;
 }
 
 export interface BreakpointSettingsEntry {

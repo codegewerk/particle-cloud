@@ -3,20 +3,32 @@ import BreakpointSettings, {
 } from "./BreakpointSettings";
 import ParticleField from "./ParticleField";
 
-import { ParticleSettings } from "./Settings";
+import { ParticleSettings, ParticleOptions } from "./Settings";
 
-interface Options extends ParticleSettings {
+interface Options extends ParticleOptions {
   selector: string;
   responsive: Array<ResponsiveOptionEntry>;
 }
 
-function parseOptions(options: unknown): Options {
+interface Settings extends ParticleSettings {
+  selector: string;
+  responsive: Array<ResponsiveOptionEntry>;
+}
+
+function parseSettings(options: any): Settings {
+  if (!options) {
+    throw new Error(message("Options are undefined."));
+  }
+
+  if (!options.selector) {
+    throw new Error(message("options.selector is undefined."));
+  }
+
   options = Object.assign(
     {
       responsive: [],
       maxParticles: 100,
       sizeVariations: 3,
-      showParticles: true,
       speed: 0.5,
       color: "#000000",
       minDistance: 120,
@@ -25,17 +37,7 @@ function parseOptions(options: unknown): Options {
     options
   );
 
-  return options as Options;
-}
-
-function getElement(selector: string): HTMLCanvasElement {
-  const element = document.querySelector<HTMLCanvasElement>(selector);
-
-  if (element === null)
-    throw new Error(
-      `particle-cloud: can not find canvas element with given selector: ${selector}`
-    );
-  else return element;
+  return options;
 }
 
 class ParticleCloud {
@@ -53,16 +55,10 @@ class ParticleCloud {
 
   private onResize: () => void;
 
-  constructor(options: unknown) {
-    const parsedOptions = parseOptions(options);
+  constructor(options: Options) {
+    const settings = parseSettings(options);
 
-    const { selector, responsive, ...settings } = parsedOptions;
-
-    if (!selector) {
-      throw new Error(
-        "particle-cloud: No selector specified! Check https://github.com/codegewerk/particle-cloud#options"
-      );
-    }
+    const { selector, responsive } = settings;
 
     this.scheduler = getAnimationScheduler();
     this.breakpointOptions = new BreakpointSettings(settings, responsive);
@@ -202,6 +198,16 @@ function getAnimationScheduler(): AnimationScheduler {
   return { requestFrame, cancelFrame };
 }
 
+function getElement(selector: string): HTMLCanvasElement {
+  const element = document.querySelector<HTMLCanvasElement>(selector);
+
+  if (element === null)
+    throw new Error(
+      message(`Cannot find canvas element with given selector: ${selector}`)
+    );
+  else return element;
+}
+
 function getPixelRatio(context: CanvasRenderingContext2D) {
   const devicePixelRatio = window.devicePixelRatio || 1;
   const backingStoreRatio =
@@ -218,6 +224,10 @@ function getPixelRatio(context: CanvasRenderingContext2D) {
     1;
 
   return devicePixelRatio / backingStoreRatio;
+}
+
+function message(message: string): string {
+  return `@codegewerk/particle-cloud: ${message}\nCheck https://github.com/codegewerk/particle-cloud#options`;
 }
 
 export default ParticleCloud;

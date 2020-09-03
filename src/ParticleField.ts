@@ -38,10 +38,8 @@ export default class ParticleField {
   }
 
   draw() {
-    if (this.settings.showParticles) {
-      for (const particle of this.particles) {
-        particle.draw(this.context);
-      }
+    for (const particle of this.particles) {
+      particle.draw(this.context);
     }
 
     if (this.settings.connectParticles) {

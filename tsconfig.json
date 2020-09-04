@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "strict": true,
+    "sourceMap": true,
     "module": "ES2020",
     "target": "es6",
     "allowJs": false,

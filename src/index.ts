@@ -7,7 +7,7 @@ import { ParticleSettings, ParticleOptions } from "./Settings";
 
 interface Options extends ParticleOptions {
   selector: string;
-  responsive: Array<ResponsiveOptionEntry>;
+  responsive?: Array<ResponsiveOptionEntry>;
 }
 
 interface Settings extends ParticleSettings {

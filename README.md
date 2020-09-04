@@ -15,7 +15,7 @@ Compared to the archived original project, this library has several improvements
 ## Installation
 
 ```bash
-npm install -save @codegewerk/particle-cloud
+npm install --save @codegewerk/particle-cloud
 ```
 
 Alternatively, the minified package can be used directly via a CDN.

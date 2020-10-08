@@ -1,20 +1,13 @@
-# particle-cloud
-
-A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
+## particle-cloud
 
 ![GitHub license](https://img.shields.io/github/license/codegewerk/particle-cloud)
 
-![Screenshot](https://github.com/codegewerk/particle-cloud/blob/master/docs/screenshot.png?raw=true)
-
+A lightweight, dependency-free and responsive javascript plugin for particle backgrounds.
 This is a fork of [particles.js](https://github.com/marcbruederlin/particles.js).
-Compared to the archived original project, this library has several improvements:
+Compared to the archived original project, this library is written in typescript, fixes several bugs and includes some significant performance improvements.
+[React](https://reactjs.org/) server-side rendering, and therefore also usage within [Gatsby](https://www.gatsbyjs.com/), is supported out of the box.
 
-- Bug fixes
-- Performance improvements, i.e. for the drawing stage
-- Complete port to [Typescript](https://www.typescriptlang.org/)
-- Works with [React](https://reactjs.org/) server-side rendering, and therefore also [Gatsby](https://www.gatsbyjs.com/), out of the box
-
-## Installation
+Install the library via npm:
 
 ```bash
 npm install --save @codegewerk/particle-cloud
@@ -27,6 +20,8 @@ Alternatively, the minified package can be used directly via a CDN.
 ```
 
 ## Minimal Example
+
+![Screenshot](https://github.com/codegewerk/particle-cloud/blob/master/docs/screenshot.png?raw=true)
 
 ```html
 <!DOCTYPE html>
@@ -80,7 +75,7 @@ const instance = new ParticleCloud({
 instance.start();
 ```
 
-### Usage with React
+## Usage with React
 
 ```jsx
 import React, { useEffect } from "react";
@@ -169,7 +164,3 @@ const instance = new ParticleCloud({
   ],
 });
 ```
-
-## License
-
-This is is released under the [MIT license](https://github.com/codegewerk/particle-cloud/blob/master/LICENSE).
